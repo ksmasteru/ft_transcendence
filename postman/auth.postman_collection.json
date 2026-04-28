@@ -1,0 +1,185 @@
+{
+    "info": {
+      "name": "Auth API (via Gateway)",
+      "_postman_id": "6f2b1a9c-5d3a-4a10-8b0b-abcdef123456",
+      "description": "Auth flows through the gateway (/api/v1/auth). Cookie-based sessions are preserved by Postman automatically.",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+      { "key": "baseUrl", "value": "http://localhost:3000" },
+      { "key": "email", "value": "aelbasri@student.1337.ma" },
+      { "key": "password", "value": "allo1234" },
+      { "key": "newPassword", "value": "NewStrongP@ssw0rd1" },
+      { "key": "twoFactorCode", "value": "" },
+      { "key": "resetToken", "value": "" },
+      { "key": "userId", "value": "" },
+      { "key": "uniqueString", "value": "" },
+      { "key": "jwt", "value": "" }
+    ],
+    "item": [
+      {
+        "name": "Sign up",
+        "event": [
+          {
+            "listen": "prerequest",
+            "script": {
+              "exec": [
+                "const ts = Date.now();",
+                "if (!pm.collectionVariables.get('email')) {",
+                "  pm.collectionVariables.set('email', `user.${ts}@mail.com`);",
+                "}"
+              ]
+            }
+          },
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Sign up success', function () {",
+                "  pm.expect(pm.response.code).to.be.oneOf([200,201]);",
+                "});",
+                "const json = pm.response.json?.() || {};",
+                "const id = json?.user?.id || json?.data?.id || json?.id;",
+                "if (id) pm.collectionVariables.set('userId', id);"
+              ]
+            }
+          }
+        ],
+        "request": {
+          "method": "POST",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"name\": \"Test User\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+          },
+          "url": "{{baseUrl}}/api/v1/auth/sign-up"
+        }
+      },
+      {
+        "name": "Sign in",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Sign in success', function () {",
+                "  pm.expect(pm.response.code).to.be.oneOf([200,204]);",
+                "});",
+                "const json = pm.response.json?.() || {};",
+                "const token = json?.token || json?.data?.token || json?.accessToken;",
+                "if (token) pm.collectionVariables.set('jwt', token);",
+                "if (json?.user?.id) pm.collectionVariables.set('userId', json.user.id);"
+              ]
+            }
+          }
+        ],
+        "request": {
+          "method": "POST",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"twoFactorCode\": \"{{twoFactorCode}}\"\n}"
+          },
+          "url": "{{baseUrl}}/api/v1/auth/sign-in"
+        }
+      },
+      {
+        "name": "Check auth (cookie session)",
+        "event": [
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "pm.test('Authenticated', function () {",
+                "  pm.expect(pm.response.code).to.be.oneOf([200]);",
+                "});"
+              ]
+            }
+          }
+        ],
+        "request": { "method": "GET", "url": "{{baseUrl}}/api/v1/auth/checkAuthCookie" }
+      },
+      {
+        "name": "Sign out",
+        "request": { "method": "POST", "url": "{{baseUrl}}/api/v1/auth/sign-out" }
+      },
+      {
+        "name": "Resend verification email",
+        "request": {
+          "method": "POST",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\"\n}" },
+          "url": "{{baseUrl}}/api/v1/auth/resend-verification"
+        }
+      },
+      {
+        "name": "Verify email",
+        "request": {
+          "method": "GET",
+          "url": "{{baseUrl}}/api/v1/auth/verify/{{userId}}/{{uniqueString}}"
+        }
+      },
+      {
+        "name": "Forgot password",
+        "request": {
+          "method": "POST",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\"\n}" },
+          "url": "{{baseUrl}}/api/v1/auth/forgot-password"
+        }
+      },
+      {
+        "name": "Reset password",
+        "request": {
+          "method": "POST",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"token\": \"{{resetToken}}\",\n  \"password\": \"{{newPassword}}\"\n}"
+          },
+          "url": "{{baseUrl}}/api/v1/auth/reset-password"
+        }
+      },
+      {
+        "name": "2FA - Setup (QR/secret)",
+        "request": {
+          "method": "GET",
+          "header": [{ "key": "Authorization", "value": "Bearer {{jwt}}", "type": "text" }],
+          "url": "{{baseUrl}}/api/v1/auth/setup-2fa"
+        }
+      },
+      {
+        "name": "2FA - Verify",
+        "request": {
+          "method": "POST",
+          "header": [
+            { "key": "Authorization", "value": "Bearer {{jwt}}", "type": "text" },
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": { "mode": "raw", "raw": "{\n  \"code\": \"{{twoFactorCode}}\"\n}" },
+          "url": "{{baseUrl}}/api/v1/auth/verify-2fa"
+        }
+      },
+      {
+        "name": "2FA - Disable",
+        "request": {
+          "method": "POST",
+          "header": [
+            { "key": "Authorization", "value": "Bearer {{jwt}}", "type": "text" },
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": { "mode": "raw", "raw": "{\n  \"code\": \"{{twoFactorCode}}\"\n}" },
+          "url": "{{baseUrl}}/api/v1/auth/disable-2fa"
+        }
+      },
+      {
+        "name": "2FA - Reset",
+        "request": {
+          "method": "POST",
+          "header": [{ "key": "Content-Type", "value": "application/json" }],
+          "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\"\n}" },
+          "url": "{{baseUrl}}/api/v1/auth/reset-2fa"
+        }
+      }
+    ]
+  }

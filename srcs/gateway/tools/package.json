@@ -1,0 +1,19 @@
+{
+  "name": "apis",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "@fastify/http-proxy": "^11.3.0",
+    "@prisma/client": "^5.0.0",
+    "fastify": "^5.6.0",
+    "nodemon": "^3.1.10",
+    "@fastify/cookie": "^11.0.2",
+    "@fastify/cors": "^11.1.0",
+    "dotenv": "^17.2.1",
+    "jsonwebtoken": "^9.0.2"
+  }
+}

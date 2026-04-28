@@ -1,0 +1,142 @@
+
+services:
+  front:
+    build:
+      context: ./front/
+      dockerfile: Dockerfile
+    container_name: front-container
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./front/.env
+    volumes:
+      - front_data:/usr/src/app/
+    depends_on:
+      - user-service
+    restart: always
+    networks:
+      - ft_transcendence
+
+  gateway:
+    build:
+      context: ./gateway/
+      dockerfile: Dockerfile
+    container_name: gateway-container
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./gateway/.env
+    volumes:
+      - gateway_data:/usr/src/app/
+    depends_on:
+      - user-service
+    restart: always
+    networks:
+      - ft_transcendence
+
+  user-service:
+    build:
+      context: ./user-service/
+      dockerfile: Dockerfile
+    container_name: user-service-container
+    env_file:
+      - ./user-service/.env
+    ports:
+      - "4000:4000"
+    volumes:
+      - user-service_data:/usr/src/app/
+      - prisma_data:/usr/src/app/prisma/
+    # depends_on:
+    #   - user-service
+    restart: always
+    networks:
+      - ft_transcendence
+
+  chat-service:
+    build:
+      context: ./chat-service/
+      dockerfile: Dockerfile
+    container_name: chat-service-container
+    env_file:
+      - ./chat-service/.env
+    ports:
+      - "4002:4002"
+    volumes:
+      - chat-service_data:/usr/src/app/
+      - prisma_data:/usr/src/app/prisma/
+    # depends_on:
+    #   - user-service
+    restart: always
+    networks:
+      - ft_transcendence
+
+  # game-service:
+  #   build:
+  #     context: ./users_service/
+  #     dockerfile: Dockerfile
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - "4000:4000"
+  #   volumes:
+  #     - ./users_service/prisma:/usr/src/app/prisma
+  #   restart: "no"
+  log-service:
+    build:
+      context: ./log-service/
+      dockerfile: Dockerfile
+    container_name: log-service-container
+    env_file:
+      - ./log-service/.env
+    ports:
+      - "4001:4001"
+    volumes:
+      - log-service_data:/usr/src/app/
+      - prisma_data:/usr/src/app/prisma/
+    depends_on:
+      - user-service
+    restart: always
+    networks:
+      - ft_transcendence
+
+volumes:
+    front_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: ./front/tools/
+    gateway_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: ./gateway/tools/
+    user-service_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: ./user-service/tools/
+    chat-service_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: ./chat-service/tools/
+    log-service_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: ./log-service/tools/
+    prisma_data:
+        driver: local
+        driver_opts:
+            type: none
+            o: bind
+            device: ./prisma/
+
+networks:
+  ft_transcendence:
+    driver: bridge

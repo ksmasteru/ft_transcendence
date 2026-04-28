@@ -1,0 +1,194 @@
+{
+  "info": {
+    "name": "Friends API (user-service)",
+    "_postman_id": "7f3f2a2a-0c2f-4a5e-9b9e-aaaabbbbcccc",
+    "description": "Collection to test friends endpoints on user-service. Set collection variable \"jwt\" with a valid token. Default baseUrl points to user-service directly (http://localhost:4000). If you route via gateway, change baseUrl to http://localhost:3000.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const jwt = pm.collectionVariables.get('jwt');",
+          "if (jwt) {",
+          "  pm.request.headers.upsert({ key: 'Authorization', value: `Bearer ${jwt}` });",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:4000" },
+    { "key": "jwt", "value": "" },
+    { "key": "targetUserId", "value": "" },
+    { "key": "requestId", "value": "" },
+    { "key": "friendId", "value": "" },
+    { "key": "blockedUserId", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "List friends",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/friends"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "List pending requests",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/api/v1/friends/requests"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "const incomingId = json && json.data && json.data.incoming && json.data.incoming[0] && json.data.incoming[0].requestId;",
+              "const outgoingId = json && json.data && json.data.outgoing && json.data.outgoing[0] && json.data.outgoing[0].requestId;",
+              "if (incomingId) pm.collectionVariables.set('requestId', incomingId);",
+              "else if (outgoingId) pm.collectionVariables.set('requestId', outgoingId);",
+              "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Send friend request",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{targetUserId}}\"\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/friends/request"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "const id = json && json.data && json.data.requestId;",
+              "if (id) pm.collectionVariables.set('requestId', id);",
+              "pm.test('Created requestId captured', function () { pm.expect(id).to.be.a('string'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Accept friend request",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/api/v1/friends/{{requestId}}/accept"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Decline friend request",
+      "request": {
+        "method": "PUT",
+        "url": "{{baseUrl}}/api/v1/friends/{{requestId}}/decline"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Remove friend",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/v1/friends/{{friendId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Block user",
+      "request": {
+        "method": "POST",
+        "header": [ { "key": "Content-Type", "value": "application/json" } ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"userId\": \"{{blockedUserId}}\"\n}"
+        },
+        "url": "{{baseUrl}}/api/v1/friends/block"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201 or 200', function () { pm.expect([200,201]).to.include(pm.response.code); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Unblock user",
+      "request": {
+        "method": "DELETE",
+        "url": "{{baseUrl}}/api/v1/friends/block/{{blockedUserId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

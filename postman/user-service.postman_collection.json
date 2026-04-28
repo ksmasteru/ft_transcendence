@@ -1,0 +1,111 @@
+{
+    "info": {
+      "name": "User Service API (via Gateway)",
+      "_postman_id": "8d9e9b2b-2f1a-4f2c-a3e2-123456789abc",
+      "description": "Test collection for user-service routed through the gateway.\nGateway rewrites /users -> /api/v1/user.",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "variable": [
+      { "key": "baseUrl", "value": "http://localhost:3000" },
+      { "key": "userId", "value": "" },
+      { "key": "jwt", "value": "" },
+      { "key": "searchName", "value": "jo" }
+    ],
+    "item": [
+      {
+        "name": "Get all users",
+        "request": {
+          "method": "GET",
+          "url": "{{baseUrl}}/api/v1/user"
+        }
+      },
+      {
+        "name": "Create user",
+        "event": [
+          {
+            "listen": "prerequest",
+            "script": {
+              "exec": [
+                "const ts = Date.now();",
+                "pm.collectionVariables.set('randEmail', `john.${ts}@mail.com`);"
+              ]
+            }
+          },
+          {
+            "listen": "test",
+            "script": {
+              "exec": [
+                "const json = pm.response.json();",
+                "const id = json && json.data && json.data.id;",
+                "if (id) pm.collectionVariables.set('userId', id);",
+                "pm.test('Created user has id', function () { pm.expect(id).to.be.a('string'); });"
+              ]
+            }
+          }
+        ],
+        "request": {
+          "method": "POST",
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"{{randEmail}}\"\n}"
+          },
+          "url": "{{baseUrl}}/users"
+        }
+      },
+      {
+        "name": "Get user by ID",
+        "request": {
+          "method": "GET",
+          "url": "{{baseUrl}}/api/v1/user/{{userId}}"
+        }
+      },
+      {
+        "name": "Update user",
+        "request": {
+          "method": "PUT",
+          "header": [
+            { "key": "Content-Type", "value": "application/json" }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"name\": \"Jane Doe\",\n  \"email\": \"jane.updated@mail.com\"\n}"
+          },
+          "url": "{{baseUrl}}/api/v1/user/{{userId}}"
+        }
+      },
+      {
+        "name": "Delete user",
+        "request": {
+          "method": "DELETE",
+          "url": "{{baseUrl}}/api/v1/user/{{userId}}"
+        }
+      },
+      {
+        "name": "Search users by name",
+        "request": {
+          "method": "GET",
+          "url": "{{baseUrl}}/api/v1/user/search?name={{searchName}}"
+        }
+      },
+      {
+        "name": "Leaderboard",
+        "request": {
+          "method": "GET",
+          "url": "{{baseUrl}}/api/v1/user/leaderboard"
+        }
+      },
+      {
+        "name": "Me (JWT required)",
+        "request": {
+          "method": "GET",
+          "header": [
+            { "key": "Authorization", "value": "Bearer {{jwt}}", "type": "text" }
+          ],
+          "url": "{{baseUrl}}/api/v1/user/me"
+        }
+      }
+    ]
+  }
