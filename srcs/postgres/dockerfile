@@ -1,0 +1,6 @@
+# Simple Postgres image for local dev. Credentials/db name come from env vars
+# passed via docker-compose (see postgres service in docker-compose.yaml), not
+# hardcoded here.
+FROM postgres:16-alpine
+
+EXPOSE 5432

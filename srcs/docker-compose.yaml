@@ -1,15 +1,25 @@
 name: ft_transcendence_dev
 
 services:
+
+  postgresql:
+    build:
+      context: ./postgres
+      dockerfile: dockerfile
+    ports:
+      - "5432:5432"
+    env_file:
+      - ./postgres/.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
   front:
     build:
       context: ./front/
       dockerfile: Dockerfile
-    container_name: front-container
     ports:
       - "8080:8080"
     volumes:
-      - front_data:/usr/src/app/
+      - ./front/tools:/usr/src/app/
       - front_node_modules:/usr/src/app/node_modules
     depends_on:
       - user-service
@@ -19,16 +29,16 @@ services:
     build:
       context: ./gateway/
       dockerfile: Dockerfile
-    container_name: gateway-container
     ports:
       - "3000:3000"
     env_file:
       - ./gateway/.env
     volumes:
-      - gateway_data:/usr/src/app/
+      - ./gateway/tools:/usr/src/app/
       - gateway_node_modules:/usr/src/app/node_modules
     depends_on:
       - user-service
+      - postgresql
     restart: always
 
   user-service:
@@ -41,11 +51,11 @@ services:
     ports:
       - "4000:4000"
     volumes:
-      - user-service_data:/usr/src/app/
+      - ./user-service/tools:/usr/src/app/
       - user-service_node_modules:/usr/src/app/node_modules
-      - prisma_data:/usr/src/app/prisma/
-    # depends_on:
-    #   - user-service
+      - ./prisma:/usr/src/app/prisma/
+    depends_on:
+      - postgresql
     restart: always
 
   chat-service:
@@ -54,15 +64,15 @@ services:
       dockerfile: Dockerfile
     container_name: chat-service-container
     env_file:
-      - ./chat-service/.env
+      - ./chat-service/.env.local
     ports:
       - "4002:4002"
     volumes:
-      - chat-service_data:/usr/src/app/
+      - ./chat-service/tools:/usr/src/app/
       - chat-service_node_modules:/usr/src/app/node_modules
-      - prisma_data:/usr/src/app/prisma/
-    # depends_on:
-    #   - user-service
+      - ./prisma:/usr/src/app/prisma/
+    depends_on:
+      - postgresql
     restart: always
 
   game-service:
@@ -70,13 +80,17 @@ services:
       context: ./game-service/
       dockerfile: Dockerfile
     container_name: game-service-container
+    env_file:
+      - ./game-service/.env.local
     ports:
       - "9090:9090"  # WebSocket port
       - "4003:4003"  # HTTP API port
+    depends_on:
+      - postgresql
     volumes:
-      - game-service_data:/usr/src/app/
+      - ./game-service/tools:/usr/src/app/
       - game-service_node_modules:/usr/src/app/node_modules
-      - prisma_data:/usr/src/app/prisma/
+      - ./prisma:/usr/src/app/prisma/
     restart: always
 
   log-service:
@@ -89,66 +103,15 @@ services:
     ports:
       - "4001:4001"
     volumes:
-      - log-service_data:/usr/src/app/
+      - ./log-service/tools:/usr/src/app/
       - log-service_node_modules:/usr/src/app/node_modules
-      - prisma_data:/usr/src/app/prisma/
+      - ./prisma:/usr/src/app/prisma/
     depends_on:
-      - user-service
+      - postgresql
     restart: always
 
 volumes:
-  your_host_path_to_project_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./
-  front_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./front/tools/
-  gateway_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./gateway/tools/
-  user-service_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./user-service/tools/
-  chat-service_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./chat-service/tools/
-  game-service_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./game-service/tools/
-  log-service_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./log-service/tools/
-  prisma_data:
-    driver: local
-    driver_opts:
-      type: none
-      o: bind
-      device: ./prisma/
-  # Anonymous-style named volumes (Docker-managed, not host bind mounts) for node_modules.
-  # These shadow the bind-mounted source dir at /usr/src/app/node_modules so npm install
-  # writes to fast native Docker storage instead of syncing thousands of files through the
-  # slow macOS host<->VM bind-mount bridge, which was the main cause of docker-compose-up slowness.
+  postgres_data:
   front_node_modules:
   gateway_node_modules:
   user-service_node_modules:
