@@ -6,10 +6,10 @@ WORKDIR /usr/src/app
 RUN apk add --no-cache openssl
 RUN npm install -g prisma@6
 
-COPY ./tools/package.json ./tools/package-lock.json ./
+COPY ./chat-service/tools/package.json ./chat-service/tools/package-lock.json ./
 RUN npm ci
 
-COPY ./tools/. .
+COPY ./chat-service/tools/. .
 RUN rm -rf ./prisma
 COPY prisma ./prisma
 RUN npx prisma generate
@@ -19,7 +19,7 @@ FROM node:20-alpine
 WORKDIR /usr/src/app
 RUN apk add --no-cache openssl
 
-COPY ./tools/package.json ./tools/package-lock.json ./
+COPY ./chat-service/tools/package.json ./chat-service/tools/package-lock.json ./
 # NOTE: this service's package.json has several runtime-required packages
 # duplicated/miscategorized under devDependencies, so `npm ci --omit=dev` breaks it
 # at runtime. Using a full `npm ci` until that's cleaned up.
@@ -28,7 +28,7 @@ COPY ./tools/package.json ./tools/package-lock.json ./
 # ("up to date, audited 1 package") instead of erroring, a genuine npm footgun.
 RUN npm ci
 
-COPY ./tools/. .
+COPY ./chat-service/tools/. .
 RUN rm -rf ./prisma
 COPY --from=builder /usr/src/app/node_modules/.prisma ./node_modules/.prisma
 
