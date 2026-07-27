@@ -1,0 +1,229 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String   @id @default(cuid())
+  firstName       String
+  lastName        String
+  name            String
+  email           String   @unique
+  password        String
+  verified        Boolean  @default(false)
+  avatar          String?
+  onlineStatus    Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  twoFactorSecret String?
+  twoFactorEnabled Boolean  @default(false)
+
+  // --- NEW FIELDS FOR USER PROFILE ---
+  xp              Int      @default(0)
+  level           Int      @default(1)
+
+  // Existing relations
+  verifications   UserVerification[]
+  passwordResets  PasswordReset[]
+  Games           Game[]
+  sentFriendships    Friendship[] @relation("Requester")
+  receivedFriendships Friendship[] @relation("Addressee")
+  chatParticipants ChatParticipant[]
+  sentMessages     Message[]
+  reactions        Reaction[]
+
+  // --- NEW RELATIONS FOR USER PROFILE ---
+  achievements    UserAchievement[]
+  recentActivities RecentActivity[]
+  logs LogEntry[]
+  notifications Notification[]
+  matchHistoryAsPlayer1 MatchHistory[] @relation("Player1")
+  matchHistoryAsPlayer2 MatchHistory[] @relation("Player2")
+
+  @@map("users")
+}
+
+
+
+model LogEntry {
+  id        String   @id @default(cuid())
+  level     String   // "ERROR", "WARN", "INFO"
+  message   String
+  component String   // The component or service where the log originated
+  userId    String?  // Optional: link the log to a specific user
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("logs")
+}
+
+model Friendship {
+  id        String   @id @default(cuid())
+  requesterId String
+  addresseeId String
+  status     String   @default("pending") // "pending", "accepted", "blocked"
+  createdAt  DateTime @default(now())
+  requester User @relation("Requester", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressee User @relation("Addressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+  @@unique([requesterId, addresseeId])
+  @@map("friendships")
+}
+
+model PasswordReset {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String
+  expiresAt DateTime
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@map("password_resets")
+}
+
+model UserVerification {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  token     String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@map("user_verifications")
+}
+
+model Game {
+  id        String   @id @default(cuid())
+  title     String
+  genre     String
+  createdAt DateTime @default(now())
+  userId    String
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@map("GAMES")
+}
+
+
+
+model Chat {
+  id              String   @id @default(cuid())
+  name            String? 
+  avatar       String? 
+  isGroup         Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  lastMessageAt   DateTime @default(now())
+  participants ChatParticipant[]
+  messages     Message[]
+  @@map("chats")
+}
+
+model ChatParticipant {
+  userId  String
+  chatId  String
+  joinedAt DateTime @default(now())
+  lastReadAt DateTime?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  @@id([userId, chatId]) 
+  @@map("chat_participants")
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  chatId    String
+  senderId  String
+  content   String
+  type      String   @default("text") 
+  fileUrl   String?
+  replyToId String?
+  createdAt DateTime @default(now())
+  chat     Chat       @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  sender   User       @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  replyTo  Message?   @relation("Replies", fields: [replyToId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  replies  Message[]  @relation("Replies")
+  reactions Reaction[]
+  @@map("messages")
+}
+
+model Reaction {
+  id         String @id @default(cuid())
+  messageId  String
+  userId     String
+  emoji      String
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([messageId, userId])
+  @@map("reactions")
+}
+
+
+model Achievement {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  tier        String   // "GOLD", "SILVER", "BRONZE"
+  users       UserAchievement[]
+
+  @@map("achievements")
+}
+
+model UserAchievement {
+  userId        String
+  achievementId String
+  unlockedAt    DateTime @default(now())
+  count         Int          @default(1)
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement Achievement @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@id([userId, achievementId])
+  @@map("user_achievements")
+}
+
+model RecentActivity {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // e.g., "ACHIEVEMENT", "FORUM_POST", "GAME_LEVEL"
+  text      String   // e.g., 'Unlocked "Master Quester"'
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("recent_activities")
+}
+
+model Notification {
+  id         String   @id @default(cuid())
+  userId     String
+  type       String
+  title      String
+  message    String
+  avatar     String?
+  actionable Boolean  @default(false)
+  metadata   Json?
+  read       Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+model MatchHistory {
+  id          String   @id @default(cuid())
+  gameId      String
+  player1Id   String
+  player2Id   String
+  player1Score Int
+  player2Score Int
+  winnerId    String
+  createdAt   DateTime @default(now())
+
+  player1 User @relation("Player1", fields: [player1Id], references: [id], onDelete: Cascade)
+  player2 User @relation("Player2", fields: [player2Id], references: [id], onDelete: Cascade)
+
+  @@map("match_history")
+}
