@@ -1,0 +1,23 @@
+{
+  "name": "game-service",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "db:generate": "npx prisma generate",
+    "db:setup": "npx prisma migrate deploy && npx prisma db seed || true"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.1.0",
+    "@prisma/client": "^6.19.0",
+    "dotenv": "^16.4.5",
+    "fastify": "^5.5.0",
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10",
+    "prisma": "^6.19.0"
+  }
+}

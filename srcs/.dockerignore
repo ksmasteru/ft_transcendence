@@ -1,0 +1,10 @@
+# Applies to production builds, which use srcs/ as the build context so each
+# service's Dockerfile.prod can also COPY the shared ../prisma schema.
+# Keeps host node_modules, secrets, and local DB files out of image layers.
+**/node_modules
+**/.env
+**/*.db
+**/*.db-journal
+**/.git
+**/.DS_Store
+**/npm-debug.log*

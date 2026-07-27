@@ -1,3 +1,4 @@
+name: ft_transcendence_dev
 
 services:
   front:
@@ -7,15 +8,12 @@ services:
     container_name: front-container
     ports:
       - "8080:8080"
-    env_file:
-      - ./front/.env
     volumes:
       - front_data:/usr/src/app/
+      - front_node_modules:/usr/src/app/node_modules
     depends_on:
       - user-service
     restart: always
-    networks:
-      - ft_transcendence
 
   gateway:
     build:
@@ -28,11 +26,10 @@ services:
       - ./gateway/.env
     volumes:
       - gateway_data:/usr/src/app/
+      - gateway_node_modules:/usr/src/app/node_modules
     depends_on:
       - user-service
     restart: always
-    networks:
-      - ft_transcendence
 
   user-service:
     build:
@@ -45,12 +42,11 @@ services:
       - "4000:4000"
     volumes:
       - user-service_data:/usr/src/app/
+      - user-service_node_modules:/usr/src/app/node_modules
       - prisma_data:/usr/src/app/prisma/
     # depends_on:
     #   - user-service
     restart: always
-    networks:
-      - ft_transcendence
 
   chat-service:
     build:
@@ -63,24 +59,26 @@ services:
       - "4002:4002"
     volumes:
       - chat-service_data:/usr/src/app/
+      - chat-service_node_modules:/usr/src/app/node_modules
       - prisma_data:/usr/src/app/prisma/
     # depends_on:
     #   - user-service
     restart: always
-    networks:
-      - ft_transcendence
 
-  # game-service:
-  #   build:
-  #     context: ./users_service/
-  #     dockerfile: Dockerfile
-  #   env_file:
-  #     - .env
-  #   ports:
-  #     - "4000:4000"
-  #   volumes:
-  #     - ./users_service/prisma:/usr/src/app/prisma
-  #   restart: "no"
+  game-service:
+    build:
+      context: ./game-service/
+      dockerfile: Dockerfile
+    container_name: game-service-container
+    ports:
+      - "9090:9090"  # WebSocket port
+      - "4003:4003"  # HTTP API port
+    volumes:
+      - game-service_data:/usr/src/app/
+      - game-service_node_modules:/usr/src/app/node_modules
+      - prisma_data:/usr/src/app/prisma/
+    restart: always
+
   log-service:
     build:
       context: ./log-service/
@@ -92,51 +90,68 @@ services:
       - "4001:4001"
     volumes:
       - log-service_data:/usr/src/app/
+      - log-service_node_modules:/usr/src/app/node_modules
       - prisma_data:/usr/src/app/prisma/
     depends_on:
       - user-service
     restart: always
-    networks:
-      - ft_transcendence
 
 volumes:
-    front_data:
-        driver: local
-        driver_opts:
-            type: none
-            o: bind
-            device: ./front/tools/
-    gateway_data:
-        driver: local
-        driver_opts:
-            type: none
-            o: bind
-            device: ./gateway/tools/
-    user-service_data:
-        driver: local
-        driver_opts:
-            type: none
-            o: bind
-            device: ./user-service/tools/
-    chat-service_data:
-        driver: local
-        driver_opts:
-            type: none
-            o: bind
-            device: ./chat-service/tools/
-    log-service_data:
-        driver: local
-        driver_opts:
-            type: none
-            o: bind
-            device: ./log-service/tools/
-    prisma_data:
-        driver: local
-        driver_opts:
-            type: none
-            o: bind
-            device: ./prisma/
-
-networks:
-  ft_transcendence:
-    driver: bridge
+  your_host_path_to_project_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./
+  front_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./front/tools/
+  gateway_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./gateway/tools/
+  user-service_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./user-service/tools/
+  chat-service_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./chat-service/tools/
+  game-service_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./game-service/tools/
+  log-service_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./log-service/tools/
+  prisma_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./prisma/
+  # Anonymous-style named volumes (Docker-managed, not host bind mounts) for node_modules.
+  # These shadow the bind-mounted source dir at /usr/src/app/node_modules so npm install
+  # writes to fast native Docker storage instead of syncing thousands of files through the
+  # slow macOS host<->VM bind-mount bridge, which was the main cause of docker-compose-up slowness.
+  front_node_modules:
+  gateway_node_modules:
+  user-service_node_modules:
+  chat-service_node_modules:
+  game-service_node_modules:
+  log-service_node_modules:

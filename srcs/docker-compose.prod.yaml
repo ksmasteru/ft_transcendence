@@ -1,0 +1,110 @@
+name: ft_transcendence_prod
+
+services:
+  # One-shot job: applies pending Prisma migrations to the shared SQLite database
+  # exactly once, before any app service starts. See prisma/Dockerfile.migrate for why.
+  migrate:
+    build:
+      context: .
+      dockerfile: prisma/Dockerfile.migrate
+    container_name: prisma-migrate
+    env_file:
+      - ./user-service/.env
+    volumes:
+      - prisma_data:/usr/src/app/prisma/
+    restart: "no"
+
+  front:
+    build:
+      context: .
+      dockerfile: front/Dockerfile.prod
+    container_name: front-container
+    ports:
+      - "8080:8080"
+    depends_on:
+      - user-service
+    restart: unless-stopped
+
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile.prod
+    container_name: gateway-container
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./gateway/.env
+    depends_on:
+      - user-service
+    restart: unless-stopped
+
+  user-service:
+    build:
+      context: .
+      dockerfile: user-service/Dockerfile.prod
+    container_name: user-service-container
+    env_file:
+      - ./user-service/.env
+    ports:
+      - "4000:4000"
+    volumes:
+      - prisma_data:/usr/src/app/prisma/
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  chat-service:
+    build:
+      context: .
+      dockerfile: chat-service/Dockerfile.prod
+    container_name: chat-service-container
+    env_file:
+      - ./chat-service/.env
+    ports:
+      - "4002:4002"
+    volumes:
+      - prisma_data:/usr/src/app/prisma/
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  game-service:
+    build:
+      context: .
+      dockerfile: game-service/Dockerfile.prod
+    container_name: game-service-container
+    ports:
+      - "9090:9090"  # WebSocket port
+      - "4003:4003"  # HTTP API port
+    volumes:
+      - prisma_data:/usr/src/app/prisma/
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  log-service:
+    build:
+      context: .
+      dockerfile: log-service/Dockerfile.prod
+    container_name: log-service-container
+    env_file:
+      - ./log-service/.env
+    ports:
+      - "4001:4001"
+    volumes:
+      - prisma_data:/usr/src/app/prisma/
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  prisma_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ./prisma/

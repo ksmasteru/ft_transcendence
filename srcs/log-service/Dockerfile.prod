@@ -1,0 +1,44 @@
+# Production image. Build context is srcs/ (see docker-compose.prod.yaml) so this
+# Dockerfile can also reach the shared ../prisma schema + migrations.
+FROM node:20-alpine AS builder
+
+WORKDIR /usr/src/app
+RUN apk add --no-cache openssl
+RUN npm install -g prisma@6
+
+COPY log-service/tools/package.json log-service/tools/package-lock.json ./
+RUN npm ci
+
+COPY log-service/tools/. .
+RUN rm -rf ./prisma
+COPY prisma ./prisma
+RUN npx prisma generate
+
+FROM node:20-alpine
+
+WORKDIR /usr/src/app
+RUN apk add --no-cache openssl
+
+COPY log-service/tools/package.json log-service/tools/package-lock.json ./
+# NOTE: this service's package.json has several runtime-required packages
+# duplicated/miscategorized under devDependencies, so `npm ci --omit=dev` breaks it
+# at runtime. Using a full `npm ci` until that's cleaned up.
+# Also: NODE_ENV=production must NOT be set yet here - combined with the duplicate
+# dependency entries above, it makes `npm ci` silently install almost nothing
+# ("up to date, audited 1 package") instead of erroring, a genuine npm footgun.
+RUN npm ci
+
+COPY log-service/tools/. .
+RUN rm -rf ./prisma
+COPY --from=builder /usr/src/app/node_modules/.prisma ./node_modules/.prisma
+
+ENV NODE_ENV=production
+RUN addgroup -S app && adduser -S app -G app && chown -R app:app /usr/src/app
+USER app
+
+EXPOSE 4001
+
+# Migrations are applied once by the dedicated `migrate` service before this
+# container starts (see docker-compose.prod.yaml) - not here, to avoid concurrent
+# `prisma migrate deploy` calls from multiple services racing on the shared SQLite file.
+CMD ["node", "index.js"]

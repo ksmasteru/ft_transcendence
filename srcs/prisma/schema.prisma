@@ -44,6 +44,8 @@ model User {
   recentActivities RecentActivity[]
   logs LogEntry[]
   notifications Notification[]
+  matchHistoryAsPlayer1 MatchHistory[] @relation("Player1")
+  matchHistoryAsPlayer2 MatchHistory[] @relation("Player2")
 
   @@map("users")
 }
@@ -122,6 +124,7 @@ model ChatParticipant {
   userId  String
   chatId  String
   joinedAt DateTime @default(now())
+  lastReadAt DateTime?
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
   chat Chat @relation(fields: [chatId], references: [id], onDelete: Cascade)
   @@id([userId, chatId]) 
@@ -207,4 +210,20 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notifications")
+}
+
+model MatchHistory {
+  id          String   @id @default(cuid())
+  gameId      String
+  player1Id   String
+  player2Id   String
+  player1Score Int
+  player2Score Int
+  winnerId    String
+  createdAt   DateTime @default(now())
+
+  player1 User @relation("Player1", fields: [player1Id], references: [id], onDelete: Cascade)
+  player2 User @relation("Player2", fields: [player2Id], references: [id], onDelete: Cascade)
+
+  @@map("match_history")
 }

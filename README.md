@@ -22,6 +22,7 @@ ft_trandandan/
 ## 🚀 Features
 
 ### Core Features
+
 - **User Authentication & Authorization** (JWT-based)
 - **Real-time Chat System** (Direct & Group messaging)
 - **Tournament Management**
@@ -32,6 +33,7 @@ ft_trandandan/
 - **User Profiles & Status Management**
 
 ### Technical Features
+
 - **Microservices Architecture**
 - **Docker Containerization**
 - **API Gateway with Load Balancing**
@@ -43,6 +45,7 @@ ft_trandandan/
 ## 🛠️ Technology Stack
 
 ### Backend
+
 - **Node.js** - Runtime environment
 - **Fastify** - Web framework
 - **Prisma ORM** - Database management
@@ -52,6 +55,7 @@ ft_trandandan/
 - **Docker** - Containerization
 
 ### Frontend
+
 - **React 18** - UI framework
 - **TypeScript** - Type safety
 - **Vite** - Build tool
@@ -59,6 +63,7 @@ ft_trandandan/
 - **Lucide React** - Icons
 
 ### Infrastructure
+
 - **Docker Compose** - Container orchestration
 - **Nginx** - API Gateway
 - **Postman** - API testing
@@ -68,9 +73,11 @@ ft_trandandan/
 ### Authentication Endpoints
 
 #### POST `/api/v1/auth/register`
+
 Register a new user account.
 
 **Request Body:**
+
 ```json
 {
   "email": "user@example.com",
@@ -80,6 +87,7 @@ Register a new user account.
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -93,9 +101,11 @@ Register a new user account.
 ```
 
 #### POST `/api/v1/auth/login`
+
 Authenticate user and get access token.
 
 **Request Body:**
+
 ```json
 {
   "email": "user@example.com",
@@ -104,26 +114,33 @@ Authenticate user and get access token.
 ```
 
 #### POST `/api/v1/auth/logout`
+
 Logout user and invalidate token.
 
 #### GET `/api/v1/auth/verify-email`
+
 Verify user email with token.
 
 ### User Management Endpoints
 
 #### GET `/api/v1/user`
+
 Get all users (with optional search).
 
 **Query Parameters:**
+
 - `search` (optional): Search term for user names
 
 #### GET `/api/v1/user/profile`
+
 Get current user profile.
 
 #### PUT `/api/v1/user/profile`
+
 Update user profile information.
 
 **Request Body:**
+
 ```json
 {
   "name": "Updated Name",
@@ -133,17 +150,21 @@ Update user profile information.
 ```
 
 #### GET `/api/v1/user/search`
+
 Search users by name.
 
 **Query Parameters:**
+
 - `name`: Search term
 
 ### Chat System Endpoints
 
 #### GET `/api/v1/chats`
+
 Get all chat conversations for the current user.
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -172,9 +193,11 @@ Get all chat conversations for the current user.
 ```
 
 #### POST `/api/v1/chats`
+
 Create a new chat (direct or group).
 
 **For Direct Chat:**
+
 ```json
 {
   "userId": "target-user-id"
@@ -182,6 +205,7 @@ Create a new chat (direct or group).
 ```
 
 **For Group Chat:**
+
 ```json
 {
   "isGroup": true,
@@ -191,16 +215,20 @@ Create a new chat (direct or group).
 ```
 
 #### GET `/api/v1/chats/:chatId/messages`
+
 Get messages from a specific chat.
 
 **Query Parameters:**
+
 - `page` (default: 1): Page number
 - `limit` (default: 50): Messages per page
 
 #### POST `/api/v1/chats/:chatId/messages`
+
 Send a message to a chat.
 
 **Request Body:**
+
 ```json
 {
   "content": "Message content",
@@ -209,9 +237,11 @@ Send a message to a chat.
 ```
 
 #### PUT `/api/v1/chats/:chatId`
+
 Update chat information (group chats only).
 
 **Request Body:**
+
 ```json
 {
   "name": "New Group Name",
@@ -220,14 +250,17 @@ Update chat information (group chats only).
 ```
 
 #### DELETE `/api/v1/chats/:chatId`
+
 Delete a chat conversation.
 
 ### Chat Participants Management
 
 #### POST `/api/v1/chats/:chatId/participants`
+
 Add participants to a group chat.
 
 **Request Body:**
+
 ```json
 {
   "userIds": ["user-id-1", "user-id-2"]
@@ -235,17 +268,21 @@ Add participants to a group chat.
 ```
 
 #### DELETE `/api/v1/chats/:chatId/participants/:userId`
+
 Remove a participant from a group chat.
 
 ### Friends System Endpoints
 
 #### GET `/api/v1/friends`
+
 Get user's friends list.
 
 #### POST `/api/v1/friends/request`
+
 Send a friend request.
 
 **Request Body:**
+
 ```json
 {
   "userId": "target-user-id"
@@ -253,9 +290,11 @@ Send a friend request.
 ```
 
 #### PUT `/api/v1/friends/request/:requestId`
+
 Accept or decline a friend request.
 
 **Request Body:**
+
 ```json
 {
   "action": "accept" // "accept" or "decline"
@@ -263,12 +302,15 @@ Accept or decline a friend request.
 ```
 
 #### DELETE `/api/v1/friends/:friendId`
+
 Remove a friend.
 
 #### POST `/api/v1/friends/block`
+
 Block a user.
 
 **Request Body:**
+
 ```json
 {
   "userId": "user-to-block-id"
@@ -278,24 +320,30 @@ Block a user.
 ### Notification Endpoints
 
 #### GET `/api/v1/notifications`
+
 Get user notifications.
 
 #### PUT `/api/v1/notifications/:notificationId/read`
+
 Mark notification as read.
 
 #### DELETE `/api/v1/notifications/:notificationId`
+
 Delete a notification.
 
 ### File Upload Endpoints
 
 #### POST `/api/v1/upload`
+
 Upload a file.
 
 **Request:**
+
 - Content-Type: `multipart/form-data`
 - Field name: `file`
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -312,6 +360,7 @@ Upload a file.
 The application uses **Prisma ORM** with **SQLite** database. Key models include:
 
 ### User Model
+
 ```prisma
 model User {
   id            String   @id @default(cuid())
@@ -327,6 +376,7 @@ model User {
 ```
 
 ### Chat Model
+
 ```prisma
 model Chat {
   id              String   @id @default(cuid())
@@ -340,6 +390,7 @@ model Chat {
 ```
 
 ### Message Model
+
 ```prisma
 model Message {
   id         String      @id @default(cuid())
@@ -357,27 +408,31 @@ model Message {
 ## 🐳 Docker Setup
 
 ### Prerequisites
+
 - Docker
 - Docker Compose
 
 ### Environment Setup
 
 1. **Clone the repository:**
+
 ```bash
 git clone <repository-url>
 cd ft_trandandan
 ```
 
 2. **Set up environment variables:**
-Create `.env` files in each service directory with required variables.
+   Create `.env` files in each service directory with required variables.
 
 **Gateway (.env):**
+
 ```env
 PORT=3000
 NODE_ENV=development
 ```
 
 **User Service (.env):**
+
 ```env
 PORT=3001
 DATABASE_URL="file:./dev.db"
@@ -389,6 +444,7 @@ EMAIL_PASS="your-email-password"
 ```
 
 **Log Service (.env):**
+
 ```env
 PORT=3002
 DATABASE_URL="file:./logs.db"
@@ -397,22 +453,26 @@ DATABASE_URL="file:./logs.db"
 ### Running the Application
 
 1. **Start all services:**
+
 ```bash
 docker-compose up -d
 ```
 
 2. **Run database migrations:**
+
 ```bash
 cd srcs/prisma
 npx prisma migrate dev
 ```
 
 3. **Seed the database (optional):**
+
 ```bash
 npx prisma db seed
 ```
 
 ### Service Ports
+
 - **Gateway:** http://localhost:3000
 - **Frontend:** http://localhost:5173
 - **User Service:** http://localhost:3001
@@ -423,16 +483,19 @@ npx prisma db seed
 ### Backend Development
 
 1. **Navigate to a service directory:**
+
 ```bash
 cd srcs/user-service/tools
 ```
 
 2. **Install dependencies:**
+
 ```bash
 npm install
 ```
 
 3. **Run in development mode:**
+
 ```bash
 npm run dev
 ```
@@ -440,16 +503,19 @@ npm run dev
 ### Frontend Development
 
 1. **Navigate to frontend directory:**
+
 ```bash
 cd srcs/front/tools
 ```
 
 2. **Install dependencies:**
+
 ```bash
 npm install
 ```
 
 3. **Start development server:**
+
 ```bash
 npm run dev
 ```
@@ -457,17 +523,20 @@ npm run dev
 ### Database Management
 
 **Generate Prisma client:**
+
 ```bash
 cd srcs/prisma
 npx prisma generate
 ```
 
 **Create migration:**
+
 ```bash
 npx prisma migrate dev --name migration-name
 ```
 
 **View database:**
+
 ```bash
 npx prisma studio
 ```
@@ -477,6 +546,7 @@ npx prisma studio
 ### User Registration Flow
 
 1. **Register User:**
+
 ```bash
 POST /api/v1/auth/register
 {
@@ -487,11 +557,13 @@ POST /api/v1/auth/register
 ```
 
 2. **Verify Email:**
+
 ```bash
 GET /api/v1/auth/verify-email?token=verification-token
 ```
 
 3. **Login:**
+
 ```bash
 POST /api/v1/auth/login
 {
@@ -503,6 +575,7 @@ POST /api/v1/auth/login
 ### Chat Creation Flow
 
 1. **Create Direct Chat:**
+
 ```bash
 POST /api/v1/chats
 {
@@ -511,6 +584,7 @@ POST /api/v1/chats
 ```
 
 2. **Send Message:**
+
 ```bash
 POST /api/v1/chats/chat-id/messages
 {
@@ -520,6 +594,7 @@ POST /api/v1/chats/chat-id/messages
 ```
 
 3. **Get Messages:**
+
 ```bash
 GET /api/v1/chats/chat-id/messages?page=1&limit=20
 ```
@@ -527,6 +602,7 @@ GET /api/v1/chats/chat-id/messages?page=1&limit=20
 ### Group Chat Flow
 
 1. **Create Group:**
+
 ```bash
 POST /api/v1/chats
 {
@@ -537,6 +613,7 @@ POST /api/v1/chats
 ```
 
 2. **Add Members:**
+
 ```bash
 POST /api/v1/chats/group-id/participants
 {
@@ -545,6 +622,7 @@ POST /api/v1/chats/group-id/participants
 ```
 
 3. **Update Group Info:**
+
 ```bash
 PUT /api/v1/chats/group-id
 {
@@ -555,13 +633,16 @@ PUT /api/v1/chats/group-id
 ## 📊 Logging & Monitoring
 
 ### Log Service
+
 The application includes a dedicated logging service that:
+
 - Captures all API requests and responses
 - Tracks user activities
 - Monitors system performance
 - Provides error tracking
 
 ### Log Access
+
 ```bash
 # View logs in real-time
 ./logs.sh
@@ -581,12 +662,14 @@ The project includes Postman collections in the `/postman` directory:
 - `friends.postman_collection.json` - Friends system endpoints
 
 ### Import Collections
+
 1. Open Postman
 2. Import the collection files
 3. Set up environment variables
 4. Run the tests
 
 ### Manual Testing
+
 ```bash
 # Test authentication
 curl -X POST http://localhost:3000/api/v1/auth/login \
@@ -613,6 +696,7 @@ curl -X GET http://localhost:3000/api/v1/user/profile \
 ### Production Setup
 
 1. **Update environment variables:**
+
 ```env
 NODE_ENV=production
 DATABASE_URL="your-production-database-url"
@@ -620,11 +704,13 @@ JWT_SECRET="secure-production-secret"
 ```
 
 2. **Build and deploy:**
+
 ```bash
 docker-compose -f docker-compose.prod.yml up -d
 ```
 
 3. **Run production migrations:**
+
 ```bash
 npx prisma migrate deploy
 ```
@@ -646,6 +732,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ### Common Issues
 
 **Database Connection Issues:**
+
 ```bash
 # Reset database
 cd srcs/prisma
@@ -653,6 +740,7 @@ npx prisma migrate reset
 ```
 
 **Port Conflicts:**
+
 ```bash
 # Check port usage
 lsof -i :3000
@@ -661,6 +749,7 @@ kill -9 <PID>
 ```
 
 **Docker Issues:**
+
 ```bash
 # Rebuild containers
 docker-compose down
@@ -670,7 +759,11 @@ docker-compose up --build
 ### Support
 
 For support and questions:
+
 1. Check existing issues in the repository
 2. Create a new issue with detailed description
 3. Include error logs and environment details
 
+---
+
+**Built with ❤️ by [Your Name]**

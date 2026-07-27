@@ -4,7 +4,7 @@ import { getLogs, addLog, clearLogs } from "../controllers/log.controller.js";
 // import authorize from "../middleware/auth.middleware.js";
 
 export default async function logRouter(fastify, opts) {
-  fastify.get('/logs', getLogs);
-  fastify.post('/logs', addLog);
-  fastify.delete('/logs', clearLogs);
+  fastify.get("/logs", getLogs);
+  fastify.post("/logs", addLog);
+  fastify.delete("/logs", clearLogs);
 }
