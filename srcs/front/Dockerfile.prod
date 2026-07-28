@@ -3,7 +3,7 @@ FROM node:20-alpine AS builder
 
 WORKDIR /usr/src/app
 
-COPY ./tools/package.json ./tools/package-lock.json ./
+COPY ./front/tools/package.json ./tools/package-lock.json ./
 RUN npm ci
 
 COPY ./tools/. .

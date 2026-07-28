@@ -5,10 +5,10 @@ FROM node:20-alpine AS builder
 WORKDIR /usr/src/app
 RUN apk add --no-cache openssl
 
-COPY ./tools/package.json ./tools/package-lock.json ./
+COPY ./game-service/tools/package.json ./game-service/tools/package-lock.json ./
 RUN npm ci
 
-COPY ./tools/. .
+COPY ./game-service/tools/. .
 RUN rm -rf ./prisma
 COPY prisma ./prisma
 RUN npx prisma generate
@@ -18,7 +18,7 @@ FROM node:20-alpine
 WORKDIR /usr/src/app
 RUN apk add --no-cache openssl
 
-COPY ./tools/package.json ./tools/package-lock.json ./
+COPY ./game-service/tools/package.json ./game-service/tools/package-lock.json ./
 # NODE_ENV=production must not be set before `npm ci` here - see sibling services'
 # Dockerfile.prod for why (npm footgun with certain package.json shapes).
 RUN npm ci --omit=dev

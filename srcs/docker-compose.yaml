@@ -12,6 +12,7 @@ services:
       - ./postgres/.env
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    restart: always
   front:
     build:
       context: ./front/

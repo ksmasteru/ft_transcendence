@@ -6,10 +6,10 @@ WORKDIR /usr/src/app
 RUN apk add --no-cache openssl
 RUN npm install -g prisma@6
 
-COPY ./tools/package.json ./tools/package-lock.json ./
+COPY ./user-service/tools/package.json ./user-service/tools/package-lock.json ./
 RUN npm ci
 
-COPY ./tools/. .
+COPY ./user-service/tools/. .
 RUN rm -rf ./prisma
 COPY prisma ./prisma
 RUN npx prisma generate
@@ -19,7 +19,7 @@ FROM node:20-alpine
 WORKDIR /usr/src/app
 RUN apk add --no-cache openssl
 
-COPY ./tools/package.json ./tools/package-lock.json ./
+COPY ./user-service/tools/package.json ./user-service/tools/package-lock.json ./
 # NOTE: this service's package.json has several runtime-required packages
 # (@fastify/cors, nodemailer, speakeasy, qrcode, uuid, sqlite3, and the actually-used
 # fastify/@prisma/client versions) miscategorized under devDependencies, so

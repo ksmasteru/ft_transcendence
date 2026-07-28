@@ -1,12 +1,4 @@
-# One-shot migration runner. Build context is srcs/ (see docker-compose.prod.yaml).
-#
-# Why this exists: user-service, chat-service, log-service and game-service all share
-# a single SQLite database file. Running `prisma migrate deploy` from each of them
-# concurrently on startup causes SQLite lock contention and can leave the migration
-# history in a permanently "failed" state (P3009), blocking all future deploys. This
-# image applies migrations exactly once; app services wait on it via
-# `depends_on: condition: service_completed_successfully` and never run migrate deploy
-# themselves.
+
 FROM node:20-alpine
 
 WORKDIR /usr/src/app
