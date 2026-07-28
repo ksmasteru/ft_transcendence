@@ -3,17 +3,22 @@ FROM node:20-alpine AS builder
 
 WORKDIR /usr/src/app
 
-COPY ./front/tools/package.json ./tools/package-lock.json ./
+COPY ./front/tools/package.json ./front/tools/package-lock.json ./
 RUN npm ci
 
-COPY ./tools/. .
+COPY ./front/tools/. .
+# Public gateway URL to bake into the static bundle at build time (see
+# webpack.config.js DefinePlugin) - e.g. Railway's public domain for gateway.
+# Falls back to a dynamic window.location-based URL when unset.
+ARG API_BASE_URL
+ENV API_BASE_URL=$API_BASE_URL
 RUN npm run build
 
 # Static-file-only server for this container's own build output - no TLS,
 # no reverse proxy to the other services (out of scope for now).
 FROM nginx:alpine
 
-COPY ./nginx.conf /etc/nginx/conf.d/default.conf
+COPY ./front/nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /usr/src/app/public /usr/share/nginx/html
 
 EXPOSE 8080

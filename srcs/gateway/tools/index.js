@@ -8,6 +8,16 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const USER_SERVICE_URL =
+  process.env.USER_SERVICE_URL || "http://user-service-container:4000";
+const CHAT_SERVICE_URL =
+  process.env.CHAT_SERVICE_URL || "http://chat-service-container:4002";
+const LOG_SERVICE_URL =
+  process.env.LOG_SERVICE_URL || "http://log-service-container:4001";
+const GAME_SERVICE_URL =
+  process.env.GAME_SERVICE_URL || "http://game-service-container:4003";
+const FRONTEND_URL = process.env.FRONTEND_URL;
+
 const gateway = Fastify({
   logger: true,
 });
@@ -18,8 +28,13 @@ gateway.register(cookie, {
 
 gateway.register(cors, {
   origin: (origin, cb) => {
-    // Allow requests from localhost or any IP address on port 8080
-    if (!origin || origin.includes(':8080')) {
+    // Allow requests from localhost or any IP address on port 8080 (local dev),
+    // or the deployed frontend's own origin (e.g. Railway's public URL).
+    if (
+      !origin ||
+      origin.includes(':8080') ||
+      (FRONTEND_URL && origin === FRONTEND_URL)
+    ) {
       cb(null, true);
       return;
     }
@@ -36,7 +51,7 @@ gateway.register(cors, {
 });
 
 gateway.register(fastifyHttpProxy, {
-  upstream: "http://user-service-container:4000",
+  upstream: USER_SERVICE_URL,
   prefix: "/api/v1/user",
   rewritePrefix: "/api/v1/user",
   preHandler: async (request, reply, done) => {
@@ -73,7 +88,7 @@ gateway.register(fastifyHttpProxy, {
 });
 
 gateway.register(fastifyHttpProxy, {
-  upstream: "http://user-service-container:4000",
+  upstream: USER_SERVICE_URL,
   prefix: "/api/v1/auth",
   rewritePrefix: "/api/v1/auth",
   // Ensure cookies are properly forwarded
@@ -87,7 +102,7 @@ gateway.register(fastifyHttpProxy, {
 });
 
 gateway.register(fastifyHttpProxy, {
-  upstream: "http://user-service-container:4000",
+  upstream: USER_SERVICE_URL,
   prefix: "/api/v1/friends",
   rewritePrefix: "/api/v1/friends",
   preHandler: async (request, reply, done) => {
@@ -120,7 +135,7 @@ gateway.register(fastifyHttpProxy, {
 });
 
 gateway.register(fastifyHttpProxy, {
-  upstream: "http://chat-service-container:4002",
+  upstream: CHAT_SERVICE_URL,
   prefix: "/api/v1/notifications",
   rewritePrefix: "/api/v1/notifications",
   preHandler: async (request, reply, done) => {
@@ -156,7 +171,7 @@ gateway.register(fastifyHttpProxy, {
 });
 
 gateway.register(fastifyHttpProxy, {
-  upstream: "http://chat-service-container:4002",
+  upstream: CHAT_SERVICE_URL,
   prefix: "/api/v1/chats",
   rewritePrefix: "/api/v1/chats",
   preHandler: async (request, reply, done) => {
@@ -189,7 +204,7 @@ gateway.register(fastifyHttpProxy, {
 });
 
 gateway.register(fastifyHttpProxy, {
-  upstream: "http://log-service-container:4001",
+  upstream: LOG_SERVICE_URL,
   prefix: "/api/v1/log",
   rewritePrefix: "/api/v1/log",
   preHandler: async (request, reply, done) => {
@@ -216,6 +231,39 @@ gateway.register(fastifyHttpProxy, {
       done();
     } catch (error) {
       console.error("Auth error in log proxy:", error);
+      done(error);
+    }
+  },
+});
+
+gateway.register(fastifyHttpProxy, {
+  upstream: GAME_SERVICE_URL,
+  prefix: "/api/v1/games",
+  rewritePrefix: "/api/v1/games",
+  preHandler: async (request, reply, done) => {
+    try {
+      console.log("Games service proxy - checking auth for:", request.url);
+
+      if (isPublicRoute(request.url)) {
+        console.log("Public route, skipping auth");
+        return done();
+      }
+
+      await authMiddleware(request, reply);
+
+      if (reply.sent) {
+        console.log("Reply already sent by auth middleware");
+        return;
+      }
+
+      console.log("Games service proxy - headers after auth:", {
+        "x-user-id": request.headers["x-user-id"],
+        "x-user-email": request.headers["x-user-email"],
+      });
+
+      done();
+    } catch (error) {
+      console.error("Auth error in games proxy:", error);
       done(error);
     }
   },

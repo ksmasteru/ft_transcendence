@@ -1,4 +1,5 @@
 const path = require("path");
+const webpack = require("webpack");
 
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
@@ -68,6 +69,15 @@ module.exports = {
       new MiniCssExtractPlugin({
         filename: "[name].css",
       }),
+    // Bakes the gateway's public URL in at build time, since this is a static
+    // bundle served by nginx with no Node process at runtime to read env vars
+    // from. Empty string when unset, so config.ts falls back to its dynamic
+    // window.location-based URL for local dev.
+    new webpack.DefinePlugin({
+      "process.env.API_BASE_URL": JSON.stringify(
+        process.env.API_BASE_URL || "",
+      ),
+    }),
   ].filter(Boolean), // This trick removes any 'false' items from the array
 
   // this would resolve the imports in our entry file.

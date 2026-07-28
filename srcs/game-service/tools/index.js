@@ -11,6 +11,7 @@ dotenv.config();
 const WS_PORT = Number(process.env.WS_PORT) || 9090;
 const HTTP_PORT = Number(process.env.HTTP_PORT) || 4003;
 const HOST = process.env.HOST || "0.0.0.0";
+const FRONTEND_URL = process.env.FRONTEND_URL;
 
 // Create Fastify HTTP server for REST API
 const fastify = Fastify({ logger: true });
@@ -18,7 +19,13 @@ const fastify = Fastify({ logger: true });
 fastify.register(cors, {
   origin: (origin, cb) => {
     // Allow requests from localhost or any IP address on ports 8080 or 3000
-    if (!origin || origin.includes(':8080') || origin.includes(':3000')) {
+    // (local dev), or the deployed frontend's own origin (e.g. Railway's public URL).
+    if (
+      !origin ||
+      origin.includes(':8080') ||
+      origin.includes(':3000') ||
+      (FRONTEND_URL && origin === FRONTEND_URL)
+    ) {
       cb(null, true);
       return;
     }

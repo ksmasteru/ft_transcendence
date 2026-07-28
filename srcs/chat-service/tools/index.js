@@ -8,6 +8,8 @@ import chatRouter from "./routes/chat.routes.js";
 
 dotenv.config();
 
+const FRONTEND_URL = process.env.FRONTEND_URL;
+
 const fastify = Fastify({ logger: true });
 
 fastify.register(cookie, {
@@ -22,7 +24,13 @@ fastify.register(cookie, {
 await fastify.register(cors, {
   origin: (origin, cb) => {
     // Allow requests from localhost or any IP address on ports 8080 or 3000
-    if (!origin || origin.includes(':8080') || origin.includes(':3000')) {
+    // (local dev), or the deployed frontend's own origin (e.g. Railway's public URL).
+    if (
+      !origin ||
+      origin.includes(':8080') ||
+      origin.includes(':3000') ||
+      (FRONTEND_URL && origin === FRONTEND_URL)
+    ) {
       cb(null, true);
       return;
     }

@@ -4,13 +4,13 @@ FROM node:20-alpine
 
 WORKDIR /usr/src/app
 
-COPY ./tools/package.json ./tools/package-lock.json ./
+COPY ./gateway/tools/package.json ./gateway/tools/package-lock.json ./
 # NODE_ENV=production must not be set before `npm ci` - under some conditions (e.g. a
 # package listed in both dependencies and devDependencies) it makes npm silently
 # install almost nothing instead of erroring. Set it only after installing.
 RUN npm ci --omit=dev
 
-COPY ./tools/. .
+COPY ./gateway/tools/. .
 
 ENV NODE_ENV=production
 RUN addgroup -S app && adduser -S app -G app && chown -R app:app /usr/src/app
