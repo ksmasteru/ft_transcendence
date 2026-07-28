@@ -10,7 +10,7 @@ RUN npm ci
 
 COPY ./game-service/tools/. .
 RUN rm -rf ./prisma
-COPY prisma ./prisma
+COPY prisma/schema.prisma ./prisma/schema.prisma
 RUN npx prisma generate
 
 FROM node:20-alpine
