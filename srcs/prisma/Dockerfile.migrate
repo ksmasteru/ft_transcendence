@@ -8,3 +8,5 @@ RUN npm install prisma@6
 COPY . ./prisma
 
 CMD ["npx", "prisma", "migrate", "deploy"]
+
+
