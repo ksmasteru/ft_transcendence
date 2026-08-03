@@ -23,13 +23,14 @@ const gateway = Fastify({
 });
 
 gateway.register(cookie, {
-  secret: process.env.COOKIE_SECRET || "default-secret",
+  secret: process.env.COOKIE_SECRET || "  default-secret",
 });
 
 gateway.register(cors, {
   origin: (origin, cb) => {
     // Allow requests from localhost or any IP address on port 8080 (local dev),
     // or the deployed frontend's own origin (e.g. Railway's public URL).
+    console.log("CORS check:", JSON.stringify({ origin, FRONTEND_URL }));
     if (
       !origin ||
       origin.includes(':8080') ||
@@ -55,6 +56,7 @@ gateway.register(fastifyHttpProxy, {
   prefix: "/api/v1/user",
   rewritePrefix: "/api/v1/user",
   preHandler: async (request, reply, done) => {
+    console.log('user service called');
     try {
       console.log("User service proxy - checking auth for:", request.url);
 

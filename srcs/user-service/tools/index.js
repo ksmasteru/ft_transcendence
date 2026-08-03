@@ -10,6 +10,7 @@ import friendsRouter from "./routes/friends.routes.js";
 dotenv.config();
 
 const FRONTEND_URL = process.env.FRONTEND_URL;
+const GATEWAY_URL = process.env.GATEWAY_URL;
 
 const fastify = Fastify({ logger: true });
 
@@ -30,7 +31,8 @@ fastify.register(cors, {
       !origin ||
       origin.includes(':8080') ||
       origin.includes(':3000') ||
-      (FRONTEND_URL && origin === FRONTEND_URL)
+      (FRONTEND_URL && origin === FRONTEND_URL) ||
+      (GATEWAY_URL && origin === GATEWAY_URL)
     ) {
       cb(null, true);
       return;

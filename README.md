@@ -767,3 +767,10 @@ For support and questions:
 ---
 
 **Built with ❤️ by [Your Name]**
+
+def get_mae(max_leaf_nodes, train_X, val_X, train_y, val_y):
+    iowa_model = DecisionTreeRegressor(max_leaf_nodes=max_leaf_nodes, random_state=0)
+    iowa_model.fit(Train_X, train_y)
+    predicted_values = iowa_model.predict(val_X)
+    mae = mean_absolute_error(val_y, predicted_values)
+    return(mae)
